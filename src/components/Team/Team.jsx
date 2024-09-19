@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Back from '../../assets/img/Team/back.svg'
 import Down from '../../assets/img/Team/down.svg'
 import TeamPop from './TeamPop'
+import { useNavigate } from 'react-router-dom'
 
 const Team = () => {
     const [startyear, setStartYear] = useState("");
@@ -11,17 +12,22 @@ const Team = () => {
     const [backmonth, setBackMonth] = useState("");
     const [backday, setBackDay] = useState("");
     const [memo, setMemo] = useState('');
-    const [popup, setPopup] = useState(true)
+    const [popup, setPopup] = useState(false);
+    const navigation = useNavigate();
 
     const years = Array.from({ length: 10 }, (_, i) => 2033 - i);
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
+    const onBack = () => {
+        navigation(-1)
+    }
+
     return (
         <div className='Team_wrap container'>
             <div>
                 <div className="header">
-                    <img src={Back} alt="back button" />
+                    <img src={Back} alt="back button" onClick={() => { onBack() }} />
                     <h2>그룹 생성하기</h2>
                 </div>
                 <div className="main">
@@ -115,10 +121,10 @@ const Team = () => {
             </div>
             <div className="btn_box">
                 <button className="done" onClick={() => { setPopup(true) }}>그룹 생성 완료하기</button>
-                <button className="delete">취소</button>
+                <button className="delete" onClick={() => { onBack() }} >취소</button>
             </div>
             {popup ? (
-                <TeamPop setPopup={setPopup}/>
+                <TeamPop setPopup={setPopup} />
             ) : (<></>)}
         </div>
     )

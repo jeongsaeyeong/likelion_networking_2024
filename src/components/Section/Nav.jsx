@@ -10,7 +10,7 @@ const Nav = () => {
         <div className='Nav_wrap'>
             <Link to='/'><img src={Home} alt="Home" /></Link>
             <Link to='/suggest'><img src={Suggest} alt="Suggest" /></Link>
-            <Link to='/report'><img src={Report} alt="Report" /></Link>
+            <Link to='/travel/now'><img src={Report} alt="Report" /></Link>
             <Link to='/mypage'><img src={Mypage} alt="Mypage" /></Link>
         </div>
     )

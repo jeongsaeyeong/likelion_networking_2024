@@ -25,6 +25,7 @@ import AiSuggest from './components/Suggest/AiSuggest'
 import AiResult from './components/Suggest/AiResult'
 import AiResultPart from './components/Suggest/AiResultPart'
 import SuggestDetail from './components/Suggest/SuggestDetail';
+import RecordEdit from './components/Record/RecordEdit'
 
 const App = () => {
     return (
@@ -40,6 +41,7 @@ const App = () => {
                 <Route path='/suggest' element={<Suggest />} />
                 <Route path='/report' element={<Report />} />
                 <Route path='/record' element={<Record />} />
+                <Route path='/record_edit' element={<RecordEdit />} />
                 <Route path='/settle' element={<Settle />} />
                 <Route path='/mypage' element={<Mypage />} />
                 <Route path='/login' element={<Login />} />
@@ -53,8 +55,6 @@ const App = () => {
                 <Route path='/aiSuggest' element={<AiSuggest />} />
                 <Route path='/aiResult' element={<AiResult />} />
                 <Route path='/aiResultPart' element={<AiResultPart />} />
-
-
             </Routes>
             <Nav />
         </BrowserRouter>

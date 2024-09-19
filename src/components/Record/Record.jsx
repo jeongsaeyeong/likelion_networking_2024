@@ -1,24 +1,22 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
+=======
+import React from 'react';
+>>>>>>> e69067fc24b8d5ab09838f8ac75692394df012d9
 import BackIcon from '../../assets/img/back_btn/Icon_back.svg';
+import Img01 from '../../assets/img/Record/img01.png';
+import { useNavigate } from 'react-router-dom';
 
 const Record = () => {
-    const [selectedMembers, setSelectedMembers] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState([]);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [title, setTitle] = useState('');
-    const [amount, setAmount] = useState('');
-    const [memo, setMemo] = useState('');
-    const [isEditing, setIsEditing] = useState(true);
+    const navigation = useNavigate();
 
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setSelectedImage(URL.createObjectURL(file));
-        }
-    };
+    const onBack = () => {
+        navigation(-1)
+    }
 
+<<<<<<< HEAD
     const handleSave = async () => {
         // 멤버 이름 배열로 변환
         const memberNames = selectedMembers.map(member => member.value);
@@ -236,6 +234,42 @@ const Record = () => {
                     <button className="record-button submit" onClick={handleEdit}>수정하기</button>
                 )}
             </div>
+=======
+    const GoEdit = () => {
+        navigation('/record_edit')
+    }
+
+    return (
+        <div className='Record_wrap container'>
+            <div>
+                <div className="header">
+                    <img src={BackIcon} alt="back button" onClick={() => { onBack() }} />
+                    <h2>여행 지출 기록하기</h2>
+                </div>
+                <div className="main">
+                    <div className="cate_wrap">
+                        <h1><span>24,000</span>원</h1>
+                        <p className="cate">교통</p>
+                    </div>
+                    <div className="member_wrap">
+                        <p>멤버</p>
+                        <div>
+                            <p className='cate'>이승원</p>
+                            <p className='cate'>박시윤</p>
+                        </div>
+                    </div>
+                    <div className="img_wrap">
+                        <p>영수증</p>
+                        <img src={Img01} alt="" />
+                    </div>
+                    <div className="memo">
+                        <p className='title'>메모</p>
+                        <p>숙소에서 테마파크까지 약 40분</p>
+                    </div>
+                </div>
+            </div>
+            <button className="button" onClick={() => { GoEdit() }}>수정하기</button>
+>>>>>>> e69067fc24b8d5ab09838f8ac75692394df012d9
         </div>
     );
 };
