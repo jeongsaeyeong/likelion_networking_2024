@@ -1,25 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BackIcon from '../../assets/img/back_btn/Icon_back.svg';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import { Chart, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 Chart.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title, ChartDataLabels);
 
 const Report = () => {
+    const navigate = useNavigate();
     const [modalOpen, setModalOpen] = useState(false);
     const [collectedAmount, setCollectedAmount] = useState('');
-
-    const spendingData = {
+    const [originalTotalSpending, setOriginalTotalSpending] = useState(0);
+    const [expenditures, setExpenditures] = useState([]);
+    const [spendingData, setSpendingData] = useState({
         labels: ['숙소', '식사', '술', '교통', '기타'],
-        datasets: [
-            {
-                label: '지출 비율',
-                data: [35, 28, 15, 8, 14],
-                backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
-            },
-        ],
-    };
+        datasets: [{
+            label: '지출 비율',
+            data: [0, 0, 0, 0, 0], // 초기값
+            backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
+        }],
+    });
+    const [totalSpending, setTotalSpending] = useState(0);
+    const [mostFrequentCategory, setMostFrequentCategory] = useState('');
+    const [memberSpendingData, setMemberSpendingData] = useState([
+        { labels: ['숙소', '식사', '술', '교통', '기타'], datasets: [{ data: [0, 0, 0, 0, 0], backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'] }] },
+        { labels: ['숙소', '식사', '술', '교통', '기타'], datasets: [{ data: [0, 0, 0, 0, 0], backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'] }] },
+        { labels: ['숙소', '식사', '술', '교통', '기타'], datasets: [{ data: [0, 0, 0, 0, 0], backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'] }] }
+    ]);
 
     const daySpendingData = {
         labels: ['1일차', '2일차', '3일차', '4일차', '5일차', '6일차', '7일차'],
@@ -94,38 +103,78 @@ const Report = () => {
         },
     };
 
-    const memberSpendingData = [
-        {
-            labels: ['숙소', '식사', '술', '교통', '기타'],
-            datasets: [
-                {
-                    label: '이승원 지출',
-                    data: [20, 15, 10, 5, 2],
-                    backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
-                },
-            ],
-        },
-        {
-            labels: ['숙소', '식사', '술', '교통', '기타'],
-            datasets: [
-                {
-                    label: '박시윤 지출',
-                    data: [18, 12, 8, 6, 4],
-                    backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
-                },
-            ],
-        },
-        {
-            labels: ['숙소', '식사', '술', '교통', '기타'],
-            datasets: [
-                {
-                    label: '이해솔 지출',
-                    data: [15, 10, 7, 5, 3],
-                    backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
-                },
-            ],
-        },
-    ];
+    const handleSettle = () => {
+        // 정산 금액과 총 지출액을 로컬 스토리지에 저장
+        localStorage.setItem('settledAmount', collectedAmount);
+        localStorage.setItem('totalSpending', originalTotalSpending);
+        // 정산 페이지로 이동
+        navigate('/settle'); 
+    };
+
+    
+
+    useEffect(() => {
+        const fetchExpenditures = async () => {
+            try {
+                const response = await axios.get('http://beancp.com:8082/expenditure/travel/4'); // 여행 ID에 따라 수정
+                setExpenditures(response.data);
+                
+                let total = 0;
+                const categoryCounts = {};
+                response.data.forEach(item => {
+                    const classification = item.classification;
+                    const amount = item.expenditureMoney;
+                    
+                    total += amount; // 총합 계산
+
+                    // 카테고리별로 카운트
+                    if (categoryCounts[classification]) {
+                        categoryCounts[classification]++;
+                    } else {
+                        categoryCounts[classification] = 1;
+                    }
+                });
+                setOriginalTotalSpending(total);
+
+                // 총 지출액 업데이트 (만원 단위로 변환)
+                setTotalSpending(Math.floor(total / 10000)); // 10,000원 단위로 나누어 만원으로 표시
+
+                // 가장 많이 사용된 카테고리 찾기
+                const mostFrequent = Object.keys(categoryCounts).reduce((a, b) => categoryCounts[a] > categoryCounts[b] ? a : b);
+                setMostFrequentCategory(mostFrequent);
+
+                // 카테고리별 지출 금액 합산
+                const categoryTotals = { 숙소: 0, 식사: 0, 술: 0, 교통: 0, 기타: 0 };
+                response.data.forEach(item => {
+                    const classification = item.classification;
+                    const amount = item.expenditureMoney;
+                    if (categoryTotals[classification] !== undefined) {
+                        categoryTotals[classification] += amount;
+                    }
+                });
+
+                // 차트 데이터 업데이트
+                setSpendingData(prev => ({
+                    ...prev,
+                    datasets: [{
+                        ...prev.datasets[0],
+                        data: [
+                            categoryTotals['숙소'],
+                            categoryTotals['식사'],
+                            categoryTotals['술'],
+                            categoryTotals['교통'],
+                            categoryTotals['기타'],
+                        ],
+                    }],
+                }));
+
+            } catch (error) {
+                console.error('지출 내역 가져오기 실패:', error);
+            }
+        };
+
+        fetchExpenditures();
+    }, []);
 
     const closeModal = () => {
         setModalOpen(false);
@@ -142,42 +191,43 @@ const Report = () => {
             <div className='chart_wrap'>
                 <div className="total-spending-section">
                     <p className="total-spending-title">총 지출액</p>
-                    <p className="total-spending-amount">98만원</p>
+                    <p className="total-spending-amount">{totalSpending}만원</p> {/* 총 지출액 표시 */}
                 </div>
 
                 <div className="chart-container">
                     <div className='chart-section'>
-                        <h3 className='chart-title'>숙소에 가장 많이 썼어요</h3>
+                        <h3 className='chart-title'>{mostFrequentCategory}에 가장 많이 썼어요</h3> {/* 가장 많이 쓴 카테고리 표시 */}
                         <div className='chart'>
-                            <Doughnut
-                                data={spendingData}
-                                options={{
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {
-                                            position: 'right',
-                                            align: 'center',
-                                            labels: {
-                                                color: 'black',
-                                                font: {
-                                                    size: 12,
-                                                },
-                                                padding: 10,
-                                                boxWidth: 10,
-                                                boxHeight: 10,
-                                            },
-                                        },
-                                        datalabels: {
-                                            color: '#FFFFFF',
-                                            display: true,
-                                            formatter: (value) => `${value}`,
-                                            anchor: 'center',
-                                            align: 'center',
-                                        },
-                                    },
-                                    borderWidth: 0,
-                                }}
-                            />
+                        <Doughnut
+    data={spendingData}
+    options={{
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+                align: 'center',
+                labels: {
+                    color: 'black',
+                    font: {
+                        size: 12,
+                    },
+                    padding: 10,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                },
+            },
+            datalabels: {
+                color: '#FFFFFF',
+                display: true,
+                formatter: (value) => value === 0 ? null : value.toFixed(1), // 값이 0이면 null로 설정
+                anchor: 'center',
+                align: 'center',
+            },
+        },
+        borderWidth: 0,
+    }}
+/>
+
                         </div>
                     </div>
 
@@ -189,58 +239,80 @@ const Report = () => {
                     </div>
 
                     <div className="chart-section">
-                        <h3 className="chart-title">멤버별 지출을 알려드려요</h3>
-                        <div className="member-chart-container">
-                            <div className="member-chart-section">
-                                <h4>이승원</h4>
-                                <div className="member-chart">
-                                    <Doughnut
-                                        data={memberSpendingData[0]}
-                                        options={{
-                                            maintainAspectRatio: false,
-                                            plugins: {
-                                                legend: { display: false },
-                                                datalabels: { display: false }
-                                            },
-                                            borderWidth: 0,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="member-chart-section">
-                                <h4>박시윤</h4>
-                                <div className="member-chart">
-                                    <Doughnut
-                                        data={memberSpendingData[1]}
-                                        options={{
-                                            maintainAspectRatio: false,
-                                            plugins: {
-                                                legend: { display: false },
-                                                datalabels: { display: false }
-                                            },
-                                            borderWidth: 0,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="member-chart-section">
-                                <h4>이해솔</h4>
-                                <div className="member-chart">
-                                    <Doughnut
-                                        data={memberSpendingData[2]}
-                                        options={{
-                                            maintainAspectRatio: false,
-                                            plugins: {
-                                                legend: { display: false },
-                                                datalabels: { display: false }
-                                            },
-                                            borderWidth: 0,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <h3 className="chart-title">멤버별 지출을 알려드려요</h3>
+    <div className="member-chart-container">
+        <div className="member-chart-section">
+            <h4>이승원</h4>
+            <div className="member-chart">
+                <Doughnut
+                    data={{
+                        labels: ['숙소', '식사', '술', '교통', '기타'],
+                        datasets: [{
+                            label: '이승원 지출',
+                            data: [20, 15, 10, 5, 2],
+                            backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
+                        }],
+                    }}
+                    options={{
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { display: false }
+                        },
+                        borderWidth: 0,
+                    }}
+                />
+            </div>
+        </div>
+        <div className="member-chart-section">
+            <h4>박시윤</h4>
+            <div className="member-chart">
+                <Doughnut
+                    data={{
+                        labels: ['숙소', '식사', '술', '교통', '기타'],
+                        datasets: [{
+                            label: '박시윤 지출',
+                            data: [18, 12, 8, 6, 4],
+                            backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
+                        }],
+                    }}
+                    options={{
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { display: false }
+                        },
+                        borderWidth: 0,
+                    }}
+                />
+            </div>
+        </div>
+        <div className="member-chart-section">
+            <h4>이해솔</h4>
+            <div className="member-chart">
+                <Doughnut
+                    data={{
+                        labels: ['숙소', '식사', '술', '교통', '기타'],
+                        datasets: [{
+                            label: '이해솔 지출',
+                            data: [15, 10, 7, 5, 3],
+                            backgroundColor: ['#1A75FE', '#4F95FF', '#80B2FF', '#A6C9FF', '#D1E3FF'],
+                        }],
+                    }}
+                    options={{
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { display: false }
+                        },
+                        borderWidth: 0,
+                    }}
+                />
+            </div>
+        </div>
+    </div>
+</div>
+
                 </div>
 
                 <div className="mvp-section">
@@ -248,7 +320,7 @@ const Report = () => {
                         <h3>이번 여행 지출 MVP 🏆</h3>
                         <div className="profile-img"></div>
                         <p>이승원님</p>
-                        <p className='small-text'>총 52만원으로 가장 많이 지출했어요 🎉</p>
+                        <p className='small-text'>총 2만원으로 가장 많이 지출했어요 🎉</p>
                     </div>
                 </div>
 
@@ -274,7 +346,7 @@ const Report = () => {
                                 onChange={(e) => setCollectedAmount(e.target.value)}
                             />
                             <button onClick={closeModal} className="close-btn">✕</button>
-                            <button className="complete-btn" onClick={() => { /* 정산 완료하기 버튼 클릭 시 로직 추가 */ }}>
+                            <button className="complete-btn" onClick={handleSettle}>
                                 정산 완료하기
                             </button>
                         </div>

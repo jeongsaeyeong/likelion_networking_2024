@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BackIcon from '../../assets/img/back_btn/Icon_back.svg';
 
 const Settle = () => {
@@ -10,6 +10,22 @@ const Settle = () => {
         '이승원': false,
         '박시윤': false,
     });
+    const [totalCollected, setTotalCollected] = useState(0);
+    const [totalSpent, setTotalSpent] = useState(0);
+
+    useEffect(() => {
+        // 로컬 스토리지에서 금액 가져오기
+        const collected = localStorage.getItem('settledAmount');
+        const spent = localStorage.getItem('totalSpending');
+        
+        if (collected) {
+            setTotalCollected(Number(collected));
+        }
+        
+        if (spent) {
+            setTotalSpent(Number(spent));
+        }
+    }, []);
 
     const handleProfileClick = (user) => {
         setSelectedUser(user);
@@ -27,13 +43,10 @@ const Settle = () => {
     };
 
     const handleFinishSettlement = () => {
-        // 정산 완료 모달 표시
         setSelectedUser('정산 완료');
         setModalOpen(true);
     };
 
-    const totalCollected = 1000000;
-    const totalSpent = 980000; // 금액 예시
     const remainingAmount = totalCollected - totalSpent;
 
     return (

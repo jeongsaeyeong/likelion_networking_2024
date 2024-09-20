@@ -26,6 +26,9 @@ import AiResult from './components/Suggest/AiResult'
 import AiResultPart from './components/Suggest/AiResultPart'
 import SuggestDetail from './components/Suggest/SuggestDetail';
 import RecordEdit from './components/Record/RecordEdit'
+import RecordCreate from './components/Record/RecordCreate'
+import TotalReport from './components/Report/TotalReport'
+import TotalSettle from './components/Settle/TotalSettle'
 
 const App = () => {
     return (
@@ -37,12 +40,18 @@ const App = () => {
                 <Route path='/teamjoin' element={<TeamJoin />} />
                 <Route path='/travel/:now' element={<Travel />} />
                 <Route path='/traveldetail' element={<TravelDetail />} />
-
                 <Route path='/suggest' element={<Suggest />} />
                 <Route path='/report' element={<Report />} />
+
                 <Route path='/record' element={<Record />} />
+                <Route path='/record_create' element={<RecordCreate />} />
                 <Route path='/record_edit' element={<RecordEdit />} />
+                <Route path='/total_report' element={<TotalReport />} />
+
+
                 <Route path='/settle' element={<Settle />} />
+                <Route path='/total_settle' element={<TotalSettle />} />
+
                 <Route path='/mypage' element={<Mypage />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='/mypage/*' element={<MypageRoutes />} /> {/* Mypage 관련 라우트 */}
