@@ -14,15 +14,17 @@ const AiSuggest = () => {
     const [budget, setBudget] = useState("");
     const [people, setPeople] = useState("");
 
-    const navigate = useNavigate();
+    const navigate console.log("Submitting Data:", { budget, startyear, startmonth, startday, backyear, backmonth, backday, people }); = useNavigate();
 
     const handleAiSuggest = async () => {
+        console.log("Submitting Data:", { budget, startyear, startmonth, startday, backyear, backmonth, backday, people });
+
         const data = {
             budget: Number(budget),
-            startDate: `${startyear}-${String(startmonth).padStart(2, '0')}-${String(startday).padStart(2, '0')}`,
-            endDate: `${backyear}-${String(backmonth).padStart(2, '0')}-${String(backday).padStart(2, '0')}`,
-            numOffPeople: Number(people)
-        };
+            startDate: ${startyear}-${String(startmonth).padStart(2, '0')}-${String(startday).padStart(2, '0')},
+        endDate: ${backyear}-${String(backmonth).padStart(2, '0')}-${String(backday).padStart(2, '0')},
+        numOffPeople: Number(people)
+    };
 
         try {
             const response = await axios.post('http://beancp.com:8082/travel/recommend', data);
@@ -41,7 +43,7 @@ const AiSuggest = () => {
     return (
         <div className='AiSuggest_wrap container'>
             <div>
-                <div className='back-btn-head'>
+                <div className='subHeader'>
                     <button onClick={() => navigate(-1)}>
                         <img src={Back} alt="Back" className='back' />
                     </button>
